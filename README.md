@@ -1,4 +1,4 @@
 # red_hat_virtualization
 Install Red Hat Virtualization from Ansible
 
-Sorry I am beginner in Ansible. Please dont blame me for errors. 
+Sorry, I am a beginner in Ansible. Please don't blame me for errors.
