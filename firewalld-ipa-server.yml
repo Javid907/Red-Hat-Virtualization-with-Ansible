@@ -1,0 +1,24 @@
+---
+  - hosts: ipaserver
+    become: yes
+    tasks:
+      - name: Enable firewalld
+        service: name=firewalld state=started enabled=yes
+      - name: Allow IPA UDP ports
+        firewalld:
+          port: "{{ item.port }}"
+          state: enabled
+        with_items:
+          - { port: '80/tcp', permanent: true }
+          - { port: '443/tcp', permanent: true }
+          - { port: '636/tcp', permanent: true }
+          - { port: '389/tcp', permanent: true }
+          - { port: '88/tcp', permanent: true }
+          - { port: '464/tcp', permanent: true }
+          - { port: '53/tcp', permanent: true }
+          - { port: '53/udp', permanent: true }
+          - { port: '88/udp', permanent: true }
+          - { port: '463/udp', permanent: true }
+          - { port: '123/udp', permanent: true }
+      - name: firewalld reload
+        command: firewall-cmd --reload

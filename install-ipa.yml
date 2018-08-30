@@ -1,0 +1,13 @@
+---
+  - hosts: ipa-servers
+    become: yes
+    tasks:
+      - name: install the latest version of IPA
+        yum:
+          name: "{{ packages }}"
+          state: latest
+        vars:
+          packages:
+          - ipa-server
+          - ipa-server-dns
+          - bind-dyndb-ldap

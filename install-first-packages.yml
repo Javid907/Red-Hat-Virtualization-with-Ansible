@@ -1,0 +1,13 @@
+---
+  - hosts: all
+    become: yes
+    tasks:
+      - name: install the latest version packages
+        yum:
+          name: "{{ packages }}"
+          state: latest
+        vars:
+          packages:
+          - nano
+          - bash-completion
+          - wget
