@@ -1,0 +1,31 @@
+---
+  - hosts: nfs
+    become: yes
+    tasks:
+      - name: Install ISCSI servers
+        yum:
+          name: nfs-utils
+          state: latest
+      - name: enable service ISCSI
+        service:
+          name: nfs
+          enabled: yes
+      - name: start service iscsi
+        service:
+          name: nfs
+          state: restarted
+      - name: Add-group
+        command: groupadd kvm -g 36
+      - name: Add-user
+        command: useradd vdsm -u 36 -g 36
+      - name: Create directory ISO
+        command: mkdir -p /exports/iso
+      - name: Create directory Export
+        command: mkdir -p /exports/export
+      - name: Permision1
+        command: chown -R 36:36 /exports
+      - name: Permision2
+        command: chmod -R 0755 /exports
+      - name: Add-export-of-file
+        shell: echo -e "/exports/iso *(rw)\n/exports/export *(rw)" >> /etc/exports
+

@@ -1,0 +1,34 @@
+---
+  - hosts: manager
+    become: yes
+    tasks:
+      - name: Attach pool id to server
+        redhat_subscription:
+          state: present
+          username: yourusername
+          password: yourpassword
+          pool_ids: 8a85f98b6494e37f0164ac8671f11d29
+
+      - name: Disable all RHSM repositories
+        rhsm_repository:
+          name: '*'
+          state: disabled
+
+      - name: Enable all a RHVM repository
+        rhsm_repository:
+          name: "{{ item }}"
+        with_items:
+          - rhel-7-server-rpms
+          - rhel-7-server-supplementaryrpms
+          - rhel-7-server-rhv-4.2-managerrpms
+          - rhel-7-server-rhv-4-managertools-rpms
+          - rhel-7-server-ansible-2-rpms
+          - jb-eap-7-for-rhel-7-serverrpms
+
+      - name: YUM update
+        command: yum update
+
+      - name: Install RHVM servers
+        yum:
+          name: rhevm
+          state: latest

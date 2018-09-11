@@ -1,0 +1,14 @@
+---
+  - hosts: hosts
+    become: yes
+    tasks:
+      - name: Disable all RHSM repositories
+        rhsm_repository:
+          name: '*'
+          state: disabled
+
+      - name: Enable all a RHVM repository
+        rhsm_repository:
+          name: "{{ item }}"
+        with_items:
+          - rhel-7-server-rhvh-4-rpms

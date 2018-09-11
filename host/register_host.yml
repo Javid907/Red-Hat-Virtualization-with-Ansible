@@ -1,0 +1,17 @@
+---
+  - hosts: hosts
+    become: yes
+    tasks:
+      - name: Register user for RHVM
+        redhat_subscription:
+          state: present
+          username: yourusername
+          password: yourpassword
+
+      - name: List subscriptions
+        command: subscription-manager list --available
+        register: pool_id
+
+      - name: Print Pool ID
+        debug:
+          msg: "Pool ID: {{ pool_id.stdout_lines }}"

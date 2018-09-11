@@ -1,0 +1,91 @@
+---
+  - hosts: db
+    become: yes
+    tasks:
+      - name: Check that the pgdg.repository exists
+        stat:
+          path: /etc/yum.repos.d/pgdg-95-centos.repo
+        register: stat_result
+      - name: Install repository PostgreSQL95
+        command: rpm -Uvh http://yum.postgresql.org/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-2.noarch.rpm
+        when: stat_result.stat.exists == False
+      - name: install PostgraySQL
+        yum:
+          name: "{{ packages }}"
+          state: latest
+        vars:
+          packages:
+          - postgresql95
+          - postgresql95-server
+          - postgresql95-contrib
+          - postgresql95-devel
+          - postgresql95-libs
+          - python-psycopg2
+      - find: paths=/var/lib/pgsql/9.5/data file_type=directory patterns="*"
+        register: dir_files
+      - name: Initilisation database
+        shell: /usr/pgsql-9.5/bin/postgresql95-setup initdb
+        when: dir_files.matched|int == 0
+      - name: enable service postgresql95
+        service:
+          name: postgresql-9.5
+          enabled: yes
+      - name: start service postgresql95
+        service:
+          name: postgresql-9.5
+          state: restarted
+      - name: Access from Manager and change postgresql.conf
+        copy: src=./config_for_postgrey.sh dest=/opt/config_for_postgrey.sh
+      - name: Permision for config_for_postgrey.sh
+        command: chmod +x /opt/config_for_postgrey.sh
+      - name: Run config_for_postgrey.sh
+        shell: /opt/config_for_postgrey.sh
+      - name: Create user ovirt_engine_history
+        become_user: postgres
+        postgresql_user:
+          name: ovirt_engine_history
+          password: yourpassword
+      - name: Create user engine
+        become_user: postgres
+        postgresql_user:
+          name: engine
+          password: yourpassword
+      - name: Create database ovirt_engine_history
+        become_user: postgres
+        postgresql_db:
+          name: ovirt_engine_history
+          owner: ovirt_engine_history
+          encoding: UTF-8
+          lc_collate: en_US.UTF-8
+          lc_ctype: en_US.UTF-8
+          template: template0
+      - name: Create database engine
+        become_user: postgres
+        postgresql_db:
+          name: engine
+          owner: engine
+          encoding: UTF-8
+          lc_collate: en_US.UTF-8
+          lc_ctype: en_US.UTF-8
+          template: template0
+      - name: Create extention database engine
+        become_user: postgres
+        postgresql_ext:
+          name: uuid-ossp
+          db: engine
+      - name: Create extention database ovirt_engine_history
+        become_user: postgres
+        postgresql_ext:
+          name: uuid-ossp
+          db: ovirt_engine_history
+      - name: Allow PostgreSQL ports
+        firewalld:
+          service: postgresql
+          permanent: true
+          state: enabled
+      - name: firewalld reload
+        command: firewall-cmd --reload
+      - name: start service postgresql95
+        service:
+          name: postgresql-9.5
+          state: restarted

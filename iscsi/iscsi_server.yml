@@ -1,0 +1,32 @@
+---
+  - hosts: iscsi
+    become: yes
+    tasks:
+      - name: define backstore objects
+        targetcli_backstore: backstore_type=block backstore_name=test1 options=/dev/vg_iscsi/lv_iscsi
+        notify:
+          - save targetcli configuration
+      - name: create iSCSI targets
+        targetcli_iscsi: wwn=iqn.2018-08.az.test:server1
+        notify:
+          - save targetcli configuration
+
+      - name: define ACLs for iSCSI target
+        targetcli_iscsi_acl: wwn=iqn.2018-08.az.test:server1 initiator_wwn=iqn.2018-08.az.test:client1
+        notify:
+          - save targetcli configuration
+
+      - name: assing LUNs to initiators
+        targetcli_iscsi_lun: wwn=iqn.2018-08.az.test:server1 backstore_type=block backstore_name=test1
+        notify:
+          - save targetcli configuration
+      - name: Allow ISCSI TCP ports
+        firewalld:
+          port: 3260/tcp
+          permanent: true
+          state: enabled
+      - name: firewalld reload
+        command: firewall-cmd --reload
+    handlers:
+      - name: save targetcli configuration
+        shell: "targetcli saveconfig"

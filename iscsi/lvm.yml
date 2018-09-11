@@ -1,0 +1,18 @@
+---
+  - hosts: iscsi
+    become: yes
+    tasks:
+      - parted:
+          device: /dev/sda
+          number: 1
+          flags: [ lvm ]
+          state: present
+      - name: Create vg from /dev/sda1
+        lvg:
+          vg: vg_iscsi
+          pvs: /dev/sda1
+      - name:
+        lvol:
+          vg: vg_iscsi
+          lv: lv_iscsi
+          size: 45G
